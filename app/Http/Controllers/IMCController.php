@@ -19,30 +19,41 @@ class IMCController extends Controller
     }
 
     public function calculate(Request $request)
-{
-    // Validar os dados do formulário
-    $request->validate([
-        'height' => 'required|numeric|min:0.5|max:3', // Altura em metros
-        'weight' => 'required|numeric|min:10|max:500', // Peso em kg
-    ]);
+    {
+        // Validar os dados do formulário
+        $request->validate([
+            'height' => 'required|numeric|min:0.5|max:3', // Altura em metros
+            'weight' => 'required|numeric|min:10|max:500', // Peso em kg
+        ]);
 
-    // Obter altura e peso do formulário
-    $height = $request->input('height');
-    $weight = $request->input('weight');
+        // Obter altura e peso do formulário
+        $height = $request->input('height');
+        $weight = $request->input('weight');
 
-    // Calcular o IMC
-    $bmi = $weight / ($height * $height);
+        // Calcular o IMC
+        $bmi = $weight / ($height * $height);
 
-    // Armazenar o cálculo no banco de dados
-    IMCCalculation::create([
-        'height' => $height,
-        'weight' => $weight,
-        'bmi' => $bmi,
-    ]);
+        // Determinar a mensagem com base no IMC
+        $message = '';
+        if ($bmi < 18) {
+            $message = 'Abaixo do peso, seria interessante buscar uma nutricionista e aumentar o consumo de nutrientes.';
+        } elseif ($bmi >= 18 && $bmi < 25) {
+            $message = 'Peso ideal, parabéns! Continue assim.';
+        } else {
+            $message = 'Sobrepeso, busque uma nutricionista e uma atividade física.';
+        }
 
-    // Redirecionar para a página inicial com uma mensagem de sucesso
-    return redirect()->route('imc.index')->with('success', 'Cálculo de IMC registrado com sucesso!');
-}
+        // Armazenar o cálculo no banco de dados
+        IMCCalculation::create([
+            'height' => $height,
+            'weight' => $weight,
+            'bmi' => $bmi,
+        ]);
+
+        // Redirecionar para a página inicial com a mensagem personalizada
+        return redirect()->route('imc.index')->with('success', "Cálculo de IMC registrado com sucesso! $message");
+    }
+
 
 public function destroy($id)
 {
